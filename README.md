@@ -1,2 +1,4 @@
-# Wordle-game-
-This is a first git repository
+Wordle-game-
+This is  my first git repository.
+Author - Ritesh Kumar 
+
