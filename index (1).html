@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+	body {
+  margin: 0;
+  padding: 0;
+  font-family: "Arial", sans-serif;
+  background-color: #121213;
+  color: white;
+}
+
+.screen {
+  background: #FEF3E2;
+  display: none;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.active {
+  display: flex;
+  color: red;
+}
+
+input,
+button {
+  padding: 10px;
+  font-size: 18px;
+  margin: 10px;
+  border-radius: 5px;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.row {
+  display: flex;
+}
+
+.tile {
+  width: 50px;
+  height: 50px;
+  border: 2px solid #3a3a3c;
+  margin: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.correct {
+  background-color: #538d4e;
+  border: none;
+}
+
+.present {
+  background-color: #b59f3b;
+  border: none;
+}
+
+.absent {
+  background-color: #3a3a3c;
+  border: none;
+}
+
+#top-bar {
+  display: flex;
+  justify-content: space-between;
+  width: 90%;
+  max-width: 600px;
+  margin: 10px auto;
+  font-size: 18px;
+}
+                 
+	
+
+
+	</style>
+	<title>Wordle game</title>
+	
+</head>
+<body>
+   <!-- Welcome Screen -->
+  <div id="welcome-screen" class="screen active">
+    <h1>👉WORDLE GAME👈</h1>
+    <input type="text" id="username" placeholder="Enter your name" />
+    <button onclick="startGame()">Submit</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <div id="top-bar">
+      <div id="player-name"></div>
+      <div id="timer">Time: 0s</div>
+      <div id="score">Score: 0</div>
+    </div>
+    <div class="game-container" id="game-container"></div>
+    <input type="text" id="guess-input" maxlength="5" placeholder="Enter 5-letter word" />
+    <button onclick="submitGuess()">Guess</button>
+    <p id="message"></p>
+  </div>
+	
+	<script>
+	    let currentRow = 0;
+    let maxGuesses = 6;
+    let wordToGuess = "GRAPE";
+    let gameOver = false;
+    let playerName = "";
+    let startTime, timerInterval;
+
+    function startGame() {
+      const name = document.getElementById('username').value;
+      if (name.trim() === "") {
+        alert("Please enter your name");
+        return;
+      }
+
+      playerName = name;
+      document.getElementById('player-name').textContent = `Player: ${name}`;
+      document.getElementById('welcome-screen').classList.remove('active');
+      document.getElementById('game-screen').classList.add('active');
+      initBoard();
+      startTimer();
+    }
+
+    function initBoard() {
+      const container = document.getElementById('game-container');
+      container.innerHTML = "";
+      for (let i = 0; i < maxGuesses; i++) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        for (let j = 0; j < 5; j++) {
+          const tile = document.createElement('div');
+          tile.className = 'tile';
+          row.appendChild(tile);
+        }
+        container.appendChild(row);
+      }
+    }
+
+    function startTimer() {
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById('timer').textContent = `Time: ${elapsed}s`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function submitGuess() {
+      if (gameOver) return;
+
+      const input = document.getElementById('guess-input');
+      const guess = input.value.toUpperCase();
+      input.value = "";
+
+      if (guess.length !== 5) {
+        showMessage("Word must be 5 letters!");
+        return;
+      }
+
+      const row = document.getElementsByClassName('row')[currentRow];
+      const tiles = row.getElementsByClassName('tile');
+
+      let guessResult = [...guess].map((letter, i) => {
+        if (letter === wordToGuess[i]) return "correct";
+        else if (wordToGuess.includes(letter)) return "present";
+        else return "absent";
+      });
+
+      for (let i = 0; i < 5; i++) {
+        tiles[i].textContent = guess[i];
+        tiles[i].classList.add(guessResult[i]);
+      }
+
+      currentRow++;
+      if (guess === wordToGuess) {
+        stopTimer();
+        showMessage("Congratulations! You guessed the word!");
+        updateScore(true);
+        gameOver = true;
+        return;
+      }
+
+      if (currentRow >= maxGuesses) {
+        stopTimer();
+        showMessage(`Game Over! The word was ${wordToGuess}.`);
+        updateScore(false);
+        gameOver = true;
+      }
+    }
+
+    function updateScore(won) {
+      let elapsed = Math.floor((Date.now() - startTime) / 1000);
+      let score = 0;
+      if (won) {
+        score = 100 - (elapsed * 2) - ((currentRow - 1) * 5);
+        if (score < 0) score = 0;
+      }
+      document.getElementById('score').textContent = `Score: ${score}`;
+    }
+
+    function showMessage(msg) {
+      document.getElementById('message').textContent = msg;
+    }                           
+	</script>
+</body>
+</html>
